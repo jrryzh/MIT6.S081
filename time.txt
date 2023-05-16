@@ -1,0 +1,2 @@
+I spent about 12 hours on this lab, mainly on xargs test, where I had trouble dealing with string manipulation, other than that it feels ok.
+PS: os labs surely are hard. I will work them all out!!
