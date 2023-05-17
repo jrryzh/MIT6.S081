@@ -95,3 +95,16 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// implements the new system call by remembering its argument in a new variable 
+// in the proc structure
+uint64
+sys_trace(void)
+{
+  // confused about what myproc() refers to, still try this anyway
+  int m;
+  if(argint(0, &m) < 0)
+    return -1;
+  myproc() -> mask = m;
+  return 0;
+}
