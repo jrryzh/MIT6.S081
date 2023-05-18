@@ -6,6 +6,8 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+// NEW
+#include "sysinfo.h"
 
 uint64
 sys_exit(void)
@@ -96,15 +98,34 @@ sys_uptime(void)
   return xticks;
 }
 
-// implements the new system call by remembering its argument in a new variable 
+// NEW: implements the new system call by remembering its argument in a new variable 
 // in the proc structure
 uint64
 sys_trace(void)
 {
   // confused about what myproc() refers to, still try this anyway
+  // UPDATE: found in kernel/proc.h
   int m;
   if(argint(0, &m) < 0)
     return -1;
   myproc() -> mask = m;
+  return 0;
+}
+
+// NEW: sysinfo, that collects information about the running system
+uint64
+sys_sysinfo(void)
+{ 
+  // do not understand this part yet
+  // what does addr stand for
+  uint64 addr;
+  if(argaddr(0, &addr) < 0)
+    return -1;
+  
+  struct sysinfo si;
+  si.freemem = sizefreemem();
+  si.nproc = numfreeproc();
+  if (copyout(myproc()->pagetable, addr, (char *)&si, sizeof(si)) < 0)
+    return -1;
   return 0;
 }
