@@ -486,11 +486,17 @@ scheduler(void)
         // before jumping back to us.
         p->state = RUNNING;
         c->proc = p;
+
+        // NEW: load process's kernel pagetable
+        w_satp(MAKE_SATP(p->kernelptbl));
         swtch(&c->context, &p->context);
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
+       
+        // NEW: back to global kernel pagetable
+        kvminithart();
 
         found = 1;
       }
