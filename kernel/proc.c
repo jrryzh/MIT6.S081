@@ -154,6 +154,19 @@ freeproc(struct proc *p)
   p->trapframe = 0;
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
+  // NEW: free process's kstack first
+  if(p->kernelptbl){
+    void *kstack_pa = (void *)kvmpa(p->kernelptbl, p->kstack);
+    kfree(kstack_pa);
+    p->kernelptbl = 0;
+  }
+  // NEW: free process's kernelpagetable
+  if(p->kernelptbl)
+    proc_freekernelptbl(p->kernelptbl, p->sz);
+  p->kstack = 0;
+  p->kernelptbl = 0;
+  // OVER
+
   p->pagetable = 0;
   p->sz = 0;
   p->pid = 0;
@@ -206,6 +219,24 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
   uvmfree(pagetable, sz);
+}
+
+// NEW: free a process's kernel page table, but dont
+// free the physical memory
+void 
+proc_freekernelptbl(pagetable_t pagetable, uint64 sz)
+{
+    for(int i = 0; i < 512; i++){
+        pte_t pte = pagetable[i];
+        if((pte & PTE_V)){
+            pagetable[i] = 0;
+            if ((pte & (PTE_R|PTE_W|PTE_X)) == 0) {
+                uint64 child = PTE2PA(pte);
+                proc_freekernelptbl((pagetable_t)child, sz);
+            }
+        }
+    }
+    kfree((void*)pagetable);
 }
 
 // a user program that calls exec("/init")
