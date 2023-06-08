@@ -20,7 +20,7 @@ extern char trampoline[]; // trampoline.S
  */
 // NEW: new kvmmap_ptbl
 void
-kvmmap_ptbl(pagetable ptbl, uint64 va, uint64 pa, uint64 sz, int perm)
+kvmmap_ptbl(pagetable_t ptbl, uint64 va, uint64 pa, uint64 sz, int perm)
 {
   if(mappages(ptbl, va, sz, pa, perm) != 0)
     panic("kvmmap_ptbl");
@@ -30,7 +30,7 @@ kvmmap_ptbl(pagetable ptbl, uint64 va, uint64 pa, uint64 sz, int perm)
 pagetable_t
 kvmptbl()
 {
-   pagetable ptbl = (pagetable_t) kalloc();
+   pagetable_t ptbl = (pagetable_t) kalloc();
    memset(ptbl, 0, PGSIZE);
  
    // uart registers
