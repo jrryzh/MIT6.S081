@@ -155,15 +155,14 @@ freeproc(struct proc *p)
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
   // NEW: free process's kstack first
-  if(p->kernelptbl){
+  if(p->kstack){
     void *kstack_pa = (void *)kvmpa(p->kernelptbl, p->kstack);
     kfree(kstack_pa);
-    p->kernelptbl = 0;
+    p->kstack = 0;
   }
   // NEW: free process's kernelpagetable
   if(p->kernelptbl)
     proc_freekernelptbl(p->kernelptbl, p->sz);
-  p->kstack = 0;
   p->kernelptbl = 0;
   // OVER
 
