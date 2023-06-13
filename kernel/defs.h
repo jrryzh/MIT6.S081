@@ -184,6 +184,8 @@ void            vmprint(pagetable_t);
 void            kvmmap_ptbl(pagetable_t ptbl, uint64 va, uint64 pa, uint64 sz, int perm);
 pagetable_t     kvmptbl();
 void            proc_freekernelptbl(pagetable_t pagetable, uint64 sz);
+// NEW: copyin & copyinstr
+int             kvmcopy(pagetable_t old, pagetable_t new, uint64 start, uint64 end);
 
 // plic.c
 void            plicinit(void);
@@ -229,3 +231,7 @@ int             sockread(struct sock *, uint64, int);
 int             sockwrite(struct sock *, uint64, int);
 void            sockrecvudp(struct mbuf*, uint32, uint16, uint16);
 #endif
+
+// vmcopyin.c
+int             copyin_new(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len);
+int             copyinstr_new(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max);

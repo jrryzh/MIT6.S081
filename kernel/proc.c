@@ -264,6 +264,9 @@ userinit(void)
   uvminit(p->pagetable, initcode, sizeof(initcode));
   p->sz = PGSIZE;
 
+  // NEW: include the initial pagetable
+  kvmcopy(p->pagetable, p->kernelptbl, 0, sizeof(initcode));
+
   // prepare for the very first "return" from kernel to user.
   p->trapframe->epc = 0;      // user program counter
   p->trapframe->sp = PGSIZE;  // user stack pointer
@@ -286,11 +289,21 @@ growproc(int n)
 
   sz = p->sz;
   if(n > 0){
+    // NEW: check under PLIC
+    if (sz + n > PLIC){
+      return -1;
+    }
     if((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0) {
+      return -1;
+    }
+    // NEW: if grow, then add new pages to kernelptbl
+    if(kvmcopy(p->pagetable, p->kernelptbl, p->sz, sz) == -1){
       return -1;
     }
   } else if(n < 0){
     sz = uvmdealloc(p->pagetable, sz, sz + n);
+    // NEW: if shrink, then remove pages from kernelptbl
+    uvmunmap(p->kernelptbl, PGROUNDUP(p->sz), (PGROUNDUP(p->sz) - PGROUNDUP(p->sz + n)) / PGSIZE, 0);
   }
   p->sz = sz;
   return 0;
@@ -316,6 +329,15 @@ fork(void)
     release(&np->lock);
     return -1;
   }
+
+  // NEW: Copy process's pagetable to kernel pagetable
+  if(kvmcopy(np->pagetable, np->kernelptbl, 0, p->sz) < 0){
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }
+  // OVER
+
   np->sz = p->sz;
 
   np->parent = p;

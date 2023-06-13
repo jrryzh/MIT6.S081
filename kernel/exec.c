@@ -115,8 +115,13 @@ exec(char *path, char **argv)
   p->trapframe->epc = elf.entry;  // initial program counter = main
   p->trapframe->sp = sp; // initial stack pointer
   proc_freepagetable(oldpagetable, oldsz);
+
+  // NEW: trash the old kernelptbl and copy
+  // the process's ptbl to kernelptbl
+  uvmunmap(p->kernelptbl, 0, PGROUNDUP(oldsz)/PGSIZE, 0);
+  kvmcopy(p->pagetable, p->kernelptbl, 0, p->sz);
   
-  // NEW:print the first process's page table
+  // NEW: print the first process's page table
   if(p->pid==1) 
     vmprint(p->pagetable);
   
