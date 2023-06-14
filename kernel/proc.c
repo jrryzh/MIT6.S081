@@ -303,7 +303,9 @@ growproc(int n)
   } else if(n < 0){
     sz = uvmdealloc(p->pagetable, sz, sz + n);
     // NEW: if shrink, then remove pages from kernelptbl
-    uvmunmap(p->kernelptbl, PGROUNDUP(p->sz), (PGROUNDUP(p->sz) - PGROUNDUP(p->sz + n)) / PGSIZE, 0);
+    if (PGROUNDUP(sz) < PGROUNDUP(p->sz)){
+      uvmunmap(p->kernelptbl, PGROUNDUP(sz), (PGROUNDUP(p->sz) - PGROUNDUP(p->sz + n)) / PGSIZE, 0);
+    }  
   }
   p->sz = sz;
   return 0;
