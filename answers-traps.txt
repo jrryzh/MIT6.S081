@@ -1,0 +1,7 @@
+1. a0-a7. In this case, it's a2.
+2. f inlined g in its function.
+3. 0x1536(wrong) correct: 0x30+1536 = 0x630
+4. 0x38 
+5. He110 world. 0x726c6400. No, endianess doesn't matter here, read as binary number not characters.
+6. it would print out what in a2.
+
