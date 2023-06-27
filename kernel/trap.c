@@ -79,6 +79,7 @@ usertrap(void)
   // NEW: alarmtest
   if(p->ticks == p->alarm_interval && p->alarm_interval > 0 && p->alarm_on == 0){
     p->ticks = 0;
+    p->copytf = (struct trapframe *)kalloc();
     memmove(p->copytf, p->trapframe, sizeof(struct trapframe));
     p->trapframe->epc = p->handler_func;
     p->alarm_on = 1;

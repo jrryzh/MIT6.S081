@@ -118,6 +118,8 @@ sys_sigreturn(void)
 {
   struct proc *p = myproc();
   memmove(p->trapframe, p->copytf, sizeof(struct trapframe));
+  // free the page
+  kfree(p->copytf);
   p->alarm_on = 0;
   return 0;
 
