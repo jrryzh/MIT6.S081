@@ -109,12 +109,16 @@ sys_sigalarm(void)
   struct proc *p = myproc();
   p->alarm_interval = ticks;
   p->handler_func = handler;
+  
   return ticks;
 }
 
 uint64
 sys_sigreturn(void)
 {
+  struct proc *p = myproc();
+  memmove(p->trapframe, p->copytf, sizeof(struct trapframe));
+  p->alarm_on = 0;
   return 0;
 
 }

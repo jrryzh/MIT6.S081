@@ -108,4 +108,7 @@ struct proc {
   int alarm_interval;
   uint64 handler_func;
   int ticks;
+  int alarm_on;
+
+  struct trapframe *copytf;
 };

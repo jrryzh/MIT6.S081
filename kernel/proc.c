@@ -131,7 +131,11 @@ found:
   p->ticks = 0;
   p->alarm_interval = 0; 
   p->handler_func = 0;
-
+  p->alarm_on = 0;
+  if((p->copytf = (struct trapframe *)kalloc()) == 0){
+    release(&p->lock);
+    return 0;
+  }
   return p;
 }
 
@@ -217,6 +221,7 @@ void
 userinit(void)
 {
   struct proc *p;
+
 
   p = allocproc();
   initproc = p;
