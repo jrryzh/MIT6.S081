@@ -5,6 +5,9 @@
 #include "riscv.h"
 #include "defs.h"
 #include "fs.h"
+// NEW
+#include "spinlock.h"
+#include "proc.h"
 
 /*
  * the kernel's page table.
@@ -78,7 +81,8 @@ walk(pagetable_t pagetable, uint64 va, int alloc)
     pte_t *pte = &pagetable[PX(level, va)];
     if(*pte & PTE_V) {
       pagetable = (pagetable_t)PTE2PA(*pte);
-    } else {
+    } 
+    else {
       if(!alloc || (pagetable = (pde_t*)kalloc()) == 0)
         return 0;
       memset(pagetable, 0, PGSIZE);
@@ -180,8 +184,11 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
     panic("uvmunmap: not aligned");
 
   for(a = va; a < va + npages*PGSIZE; a += PGSIZE){
-    if((pte = walk(pagetable, a, 0)) == 0)
+    if((pte = walk(pagetable, a, 0)) == 0){
+      if (a > ((struct proc*)myproc())->sz)
+        continue;
       panic("uvmunmap: walk");
+    }
     if((*pte & PTE_V) == 0)
       // panic("uvmunmap: not mapped");
       continue;
