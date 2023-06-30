@@ -69,8 +69,13 @@ usertrap(void)
     // ok
   } else if(r_scause() == 0xf || r_scause() == 0xd){
     uint64 va = PGROUNDDOWN(r_stval());
-    // check if va higher than sbrk
+    // NEW: check if va under sbrk
     if (va > p->sz){
+      p->killed = -1;
+      exit(-1);
+    }
+    // NEW: also check va upon sp
+    if (va < PGROUNDDOWN(p->trapframe->sp)){
       p->killed = -1;
       exit(-1);
     }
