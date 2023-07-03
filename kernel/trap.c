@@ -85,9 +85,9 @@ usertrap(void)
       exit(-1);
     }
     memset(mem, 0, PGSIZE);
-    if(mappages(p->pagetable, va, PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != 0){
+    if(mappages(p->pagetable, va, PGSIZE, (uint64)mem, PTE_W|PTE_R|PTE_U) != 0){
       kfree(mem);
-      uvmdealloc(p->pagetable, p->sz+PGSIZE, p->sz);
+      // Wrong! uvmdealloc(p->pagetable, p->sz+PGSIZE, p->sz);
       p->killed = -1;
       exit(-1);
     }

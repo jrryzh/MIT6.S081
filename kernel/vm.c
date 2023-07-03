@@ -202,9 +202,10 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
 
   for(a = va; a < va + npages*PGSIZE; a += PGSIZE){
     if((pte = walk(pagetable, a, 0)) == 0){
-      if (a > ((struct proc*)myproc())->sz)
-        continue;
-      panic("uvmunmap: walk");
+      // WRONG! if (a > ((struct proc*)myproc())->sz)
+      //  continue;
+      // panic("uvmunmap: walk");
+      continue;
     }
     if((*pte & PTE_V) == 0)
       // panic("uvmunmap: not mapped");

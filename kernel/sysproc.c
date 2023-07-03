@@ -38,27 +38,57 @@ sys_wait(void)
   return wait(p);
 }
 
+// uint64
+// sys_sbrk(void)
+// {
+//   int addr;
+//   int n;
+// 
+//   if(argint(0, &n) < 0)
+//     return -1;
+//   struct proc* p = myproc();
+//   addr = p->sz;
+//   // NEW: n < 0
+//   if(n < 0){
+//     if(n + p->sz < p->trapframe->sp){
+//       return -1;
+//     }
+//     p->sz += n; 
+//     uvmdealloc(myproc()->pagetable, addr, addr+n);
+//     return addr+n;
+//   } else { 
+//   // if(growproc(n) < 0)
+//   //   return -1;
+//     p->sz += n;
+//     return addr;
+//   }
+// }
 uint64
 sys_sbrk(void)
 {
   int addr;
   int n;
+  struct proc *p;
 
   if(argint(0, &n) < 0)
     return -1;
-  struct proc* p = myproc();
+  p = myproc();
   addr = p->sz;
-  p->sz += n;
-  // NEW: n < 0
-  if(n < 0){
-    uvmdealloc(myproc()->pagetable, addr, addr+n);
-    return addr+n;
-  } else { 
-  // if(growproc(n) < 0)
-  //   return -1;
-  return addr;
+  // lab5-1
+  if(n >= 0 && addr + n >= addr){
+    p->sz += n;    // increase size but not allocate memory
+  } else if(n < 0 && addr + n >= PGROUNDUP(p->trapframe->sp)){
+    // handle negative n and addr must be above user stack - lab5-3
+    p->sz = uvmdealloc(p->pagetable, addr, addr + n);
+  } else {
+    return -1;
   }
+
+//  if(growproc(n) < 0)
+//    return -1;
+  return addr;
 }
+
 
 uint64
 sys_sleep(void)
