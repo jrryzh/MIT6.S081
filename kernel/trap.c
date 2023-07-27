@@ -67,6 +67,44 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) != 0){
     // ok
+  } else if(r_scause() == 15){
+    // NEW: cow
+    pte_t *pte = 0;
+    uint64 pa;
+    char *mem;
+    uint flags;
+    // get virtual address and pte 
+    uint64 va = PGROUNDDOWN(r_stval());
+    pte = walk(p->pagetable, va, 0);
+    // temp
+    if (pte == 0){
+      p->killed = 1;
+      exit(-1);
+    }
+    pa = PTE2PA(*pte);
+    // check PTE_COW
+    if((*pte & PTE_COW) == 0){
+      printf("COW:pure pagefault");
+      p->killed = 1;
+      exit(-1);
+    }
+    // copy content
+    if((mem = kalloc()) == 0){
+      p->killed = 1;
+      exit(-1);
+    }
+    memmove(mem, (char *)pa, PGSIZE);
+    // get new flags
+    flags = PTE_FLAGS(*pte);
+    flags = (flags | PTE_W) & ~PTE_COW;
+    // unmap the original
+    uvmunmap(p->pagetable, va, 1, 1);
+    if(mappages(p->pagetable, va, PGSIZE, (uint64)mem, flags) != 0){
+      printf("copy page fail");
+      kfree(mem);
+      p->killed = 1;
+      exit(-1); 
+    }
   } else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());

@@ -21,6 +21,9 @@ static void freeproc(struct proc *p);
 
 extern char trampoline[]; // trampoline.S
 
+// NEW:cow
+extern int ref_counts[];
+
 // initialize the proc table at boot time.
 void
 procinit(void)
@@ -273,6 +276,7 @@ fork(void)
     release(&np->lock);
     return -1;
   }
+
   np->sz = p->sz;
 
   np->parent = p;
